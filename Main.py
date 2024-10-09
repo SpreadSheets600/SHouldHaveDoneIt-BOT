@@ -105,6 +105,7 @@ async def info(ctx: discord.ApplicationContext):
 try:
     bot.load_extension("COGS.AI")
     bot.load_extension("COGS.GitHub")
+    bot.load_extension("UTILS.CodeExecutor")
 except Exception as e:
     print(f"An Error Occurred: {e}")
 
