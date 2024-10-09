@@ -102,5 +102,11 @@ async def info(ctx: discord.ApplicationContext):
     await ctx.respond(embed=embed)
 
 
-bot.load_extension("COGS.AI")
+try:
+    bot.load_extension("COGS.AI")
+    bot.load_extension("COGS.GitHub")
+except Exception as e:
+    print(f"An Error Occurred: {e}")
+
+
 bot.run(os.getenv("TOKEN"))
