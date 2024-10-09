@@ -10,11 +10,11 @@ You are an AI assistant specialized in analyzing conversation with users. Your t
 
 Given the user's conversation history, please provide an analysis focusing on the following aspects:
 
-1. Personality Traits: Identify key personality traits based on the user's comments.
-2. Interests & Passions: Determine the user's main interests and passions from their subreddit choices and comment content.
-3. Communication Style: Describe how the user typically engages with others on Reddit.
-4. Social Behavior: Infer the user's social interaction tendencies on the platform.
-5. Recurring Themes: Identify any patterns or repeated themes in the user's comments.
+1. **Personality Traits**: Identify key personality traits based on the user's comments.
+2. **Interests & Passions**: Determine the user's main interests and passions from their subreddit choices and comment content.
+3. **Communication Style**: Describe how the user typically engages with others on Reddit.
+4. **Social Behavior**: Infer the user's social interaction tendencies on the platform.
+5. **Recurring Themes**: Identify any patterns or repeated themes in the user's comments.
 """
 
 
@@ -27,7 +27,10 @@ class AI(commands.Cog):
     def get_conversation_context(self, user_id):
         history = self.conversations.get(user_id, [])
         return "\n\n".join(
-            [f"User: {item['query']}\nMetu: {item['response']}" for item in history]
+            [
+                f"**User:** {item['query']}\n**Metu:** {item['response']}"
+                for item in history
+            ]
         )
 
     def get_user_profile(self, user_id):
@@ -48,7 +51,9 @@ class AI(commands.Cog):
             pre_instruction = f"You are Metu, a friendly, knowledgeable assistant trained by SOHAM. Please respond in a {profile['tone']} tone and with {profile['formality']} formality."
 
             conversation_context = self.get_conversation_context(user_id)
-            full_query = f"{pre_instruction}\n\n{conversation_context}\n\nUser: {query}"
+            full_query = (
+                f"{pre_instruction}\n\n{conversation_context}\n\n**User:** {query}"
+            )
 
             async with ctx.typing():
                 response = ai.prompt(message=full_query)
@@ -61,9 +66,9 @@ class AI(commands.Cog):
                 thread = await ctx.channel.create_thread(
                     name=f"Conversation with {ctx.author.name}", message=ctx.message
                 )
-                await thread.send(message)
+                await thread.send(f"**Metu:** {message}")
             else:
-                await ctx.followup.send(message)
+                await ctx.followup.send(f"**Metu:** {message}")
 
             if media:
                 for item in media:
@@ -71,7 +76,7 @@ class AI(commands.Cog):
                     if image_url:
                         embed = discord.Embed(
                             title="Generated Image",
-                            description=f"Prompt: {item.get('prompt', 'N/A')}",
+                            description=f"**Prompt:** {item.get('prompt', 'N/A')}",
                         )
                         embed.set_image(url=image_url)
                         await ctx.followup.send(embed=embed)
@@ -96,7 +101,7 @@ class AI(commands.Cog):
             )
             await ctx.respond(f"**Your Conversation History:**\n\n{history}")
         else:
-            await ctx.respond("You Have No Conversation History With Metu")
+            await ctx.respond("You have no conversation history with Metu.")
 
     @history.command(name="clear", description="Start A New Conversation With Metu AI")
     async def clear(self, ctx):
@@ -105,13 +110,12 @@ class AI(commands.Cog):
 
         embed = discord.Embed(
             title="New Conversation Started",
-            description="Your Conversation History Has Been Cleared",
+            description="Your conversation history has been cleared.",
         )
         await ctx.respond(embed=embed)
 
     @ai.command(name="stats", description="Get Your Interaction Stats With Metu")
     async def stats(self, ctx):
-
         await ctx.defer()
 
         user_id = str(ctx.author.id)
@@ -120,17 +124,16 @@ class AI(commands.Cog):
         )
 
         user_data = (
-            f"{analysis_template}\n\nUser: {self.get_conversation_context(user_id)}"
+            f"{analysis_template}\n\n**User:** {self.get_conversation_context(user_id)}"
         )
-        charcter_analysis = ai.prompt(message=user_data).get("message", "N/A")
+        character_analysis = ai.prompt(message=user_data).get("message", "N/A")
 
         await ctx.respond(
-            f"**Total Questions Asked:** {total_questions}\n\n**Character Analysis:**\n{charcter_analysis}"
+            f"**Total Questions Asked:** {total_questions}\n\n**Character Analysis:**\n{character_analysis}"
         )
 
     @ai.command(name="summarize", description="Summarize The Last 50 Messages Metu")
     async def summarize(self, ctx):
-
         await ctx.defer()
 
         user_id = str(ctx.author.id)
@@ -138,15 +141,15 @@ class AI(commands.Cog):
             conversation_context = self.get_conversation_context(user_id)
             last_50 = "\n\n".join(conversation_context.split("\n\n")[-50:])
             summary = ai.summarize(last_50)
-            await ctx.respond(f"Here Is The Summary Of Our Conversation:\n\n{summary}")
+            await ctx.respond(f"Here is the summary of our conversation:\n\n{summary}")
         else:
-            await ctx.respond("No Conversation History Found")
+            await ctx.respond("No conversation history found.")
 
     @ai.command(name="preference", description="Set your preferences for Metu")
     async def set_preferences(self, ctx, tone: str, formality: str):
         user_id = str(ctx.author.id)
         self.user_profiles[user_id] = {"tone": tone, "formality": formality}
-        await ctx.respond("Your Preferences Have Been Updated")
+        await ctx.respond("Your preferences have been updated!")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
@@ -166,7 +169,7 @@ class AI(commands.Cog):
 
                 conversation_context = self.get_conversation_context(user_id)
                 full_query = (
-                    f"{pre_instruction}\n\n{conversation_context}\n\nUser: {query}"
+                    f"{pre_instruction}\n\n{conversation_context}\n\n**User:** {query}"
                 )
 
                 async with message.channel.typing():
@@ -180,14 +183,13 @@ class AI(commands.Cog):
                     {"query": query, "response": reply_message}
                 )
 
-                # Responding in thread if needed
                 if len(self.conversations[user_id]) > 10:
                     thread = await message.channel.create_thread(
                         name=f"Conversation With {message.author.name}", message=message
                     )
-                    await thread.send(reply_message)
+                    await thread.send(f"**Metu:** {reply_message}")
                 else:
-                    await message.channel.send(reply_message)
+                    await message.channel.send(f"**Metu:** {reply_message}")
 
                 if media:
                     for item in media:
@@ -195,7 +197,7 @@ class AI(commands.Cog):
                         if image_url:
                             embed = discord.Embed(
                                 title="Generated Image",
-                                description=f"Prompt: {item.get('prompt', 'N/A')}",
+                                description=f"**Prompt:** {item.get('prompt', 'N/A')}",
                             )
                             embed.set_image(url=image_url)
                             await message.channel.send(embed=embed)
