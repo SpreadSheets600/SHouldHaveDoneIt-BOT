@@ -111,6 +111,9 @@ class AI(commands.Cog):
 
     @ai.command(name="stats", description="Get Your Interaction Stats With Metu")
     async def stats(self, ctx):
+
+        await ctx.defer()
+
         user_id = str(ctx.author.id)
         total_questions = (
             len(self.conversations[user_id]) if user_id in self.conversations else 0
@@ -127,6 +130,9 @@ class AI(commands.Cog):
 
     @ai.command(name="summarize", description="Summarize The Last 50 Messages Metu")
     async def summarize(self, ctx):
+
+        await ctx.defer()
+
         user_id = str(ctx.author.id)
         if user_id in self.conversations and self.conversations[user_id]:
             conversation_context = self.get_conversation_context(user_id)
