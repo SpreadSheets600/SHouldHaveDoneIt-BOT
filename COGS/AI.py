@@ -56,7 +56,14 @@ class AI(commands.Cog):
             media = response.get("media", [])
 
             self.conversations[user_id].append({"query": query, "response": message})
-            await ctx.followup.send(message)
+
+            if len(self.conversations[user_id]) > 10:
+                thread = await ctx.channel.create_thread(
+                    name=f"Conversation with {ctx.author.name}", message=ctx.message
+                )
+                await thread.send(message)
+            else:
+                await ctx.followup.send(message)
 
             if media:
                 for item in media:
@@ -68,12 +75,6 @@ class AI(commands.Cog):
                         )
                         embed.set_image(url=image_url)
                         await ctx.followup.send(embed=embed)
-
-            if len(self.conversations[user_id]) > 10:
-                thread = await ctx.channel.create_thread(
-                    name=f"Conversation with {ctx.author.name}", message=ctx.message
-                )
-                await thread.send("Continuing the conversation here!")
 
         except Exception as e:
             await ctx.followup.send(f"An Error Occurred: {e}")
@@ -124,16 +125,14 @@ class AI(commands.Cog):
             f"**Total Questions Asked:** {total_questions}\n\n**Character Analysis:**\n{charcter_analysis}"
         )
 
-    @ai.command(
-        name="summarize", description="Summarize The Last 50 Messages Metu"
-    )
+    @ai.command(name="summarize", description="Summarize The Last 50 Messages Metu")
     async def summarize(self, ctx):
         user_id = str(ctx.author.id)
         if user_id in self.conversations and self.conversations[user_id]:
             conversation_context = self.get_conversation_context(user_id)
             last_50 = "\n\n".join(conversation_context.split("\n\n")[-50:])
             summary = ai.summarize(last_50)
-            await ctx.respond(f"Here Is The Summary Of Our Conversation :\n\n{summary}")
+            await ctx.respond(f"Here Is The Summary Of Our Conversation:\n\n{summary}")
         else:
             await ctx.respond("No Conversation History Found")
 
@@ -141,54 +140,62 @@ class AI(commands.Cog):
     async def set_preferences(self, ctx, tone: str, formality: str):
         user_id = str(ctx.author.id)
         self.user_profiles[user_id] = {"tone": tone, "formality": formality}
-        await ctx.respond("Your Preference Have Been Updated")
+        await ctx.respond("Your Preferences Have Been Updated")
 
     @commands.Cog.listener()
     async def on_message(self, message: discord.Message):
         if message.author.bot:
             return
+
         user_id = str(message.author.id)
 
-        if user_id not in self.conversations:
-            self.conversations[user_id] = []
+        if self.bot.user in message.mentions:
+            if user_id not in self.conversations:
+                self.conversations[user_id] = []
 
-        try:
-            query = message.content
-            profile = self.get_user_profile(user_id)
-            pre_instruction = f"You are Metu, a friendly, knowledgeable assistant trained by SOHAM. Please respond in a {profile['tone']} tone and with {profile['formality']} formality."
+            try:
+                query = message.content
+                profile = self.get_user_profile(user_id)
+                pre_instruction = f"You are Metu, a friendly, knowledgeable assistant trained by SOHAM. Please respond in a {profile['tone']} tone and with {profile['formality']} formality."
 
-            conversation_context = self.get_conversation_context(user_id)
-            full_query = f"{pre_instruction}\n\n{conversation_context}\n\nUser: {query}"
-
-            async with message.channel.typing():
-                response = ai.prompt(message=full_query)
-            reply_message = response.get("message", "I'm Sorry, Metu Might Be Dead ?!")
-            media = response.get("media", [])
-
-            self.conversations[user_id].append(
-                {"query": query, "response": reply_message}
-            )
-            await message.channel.send(reply_message)
-
-            if media:
-                for item in media:
-                    image_url = item.get("url")
-                    if image_url:
-                        embed = discord.Embed(
-                            title="Generated Image",
-                            description=f"Prompt: {item.get('prompt', 'N/A')}",
-                        )
-                        embed.set_image(url=image_url)
-                        await message.channel.send(embed=embed)
-
-            if len(self.conversations[user_id]) > 10:
-                thread = await message.channel.create_thread(
-                    name=f"Conversation With {message.author.name}", message=message
+                conversation_context = self.get_conversation_context(user_id)
+                full_query = (
+                    f"{pre_instruction}\n\n{conversation_context}\n\nUser: {query}"
                 )
-                await thread.send("Continuing The Conversation Here!")
 
-        except Exception as e:
-            await message.channel.send(f"An error occurred: {e}")
+                async with message.channel.typing():
+                    response = ai.prompt(message=full_query)
+                reply_message = response.get(
+                    "message", "I'm Sorry, Metu Might Be Dead ?!"
+                )
+                media = response.get("media", [])
+
+                self.conversations[user_id].append(
+                    {"query": query, "response": reply_message}
+                )
+
+                # Responding in thread if needed
+                if len(self.conversations[user_id]) > 10:
+                    thread = await message.channel.create_thread(
+                        name=f"Conversation With {message.author.name}", message=message
+                    )
+                    await thread.send(reply_message)
+                else:
+                    await message.channel.send(reply_message)
+
+                if media:
+                    for item in media:
+                        image_url = item.get("url")
+                        if image_url:
+                            embed = discord.Embed(
+                                title="Generated Image",
+                                description=f"Prompt: {item.get('prompt', 'N/A')}",
+                            )
+                            embed.set_image(url=image_url)
+                            await message.channel.send(embed=embed)
+
+            except Exception as e:
+                await message.channel.send(f"An error occurred: {e}")
 
 
 def setup(bot: commands.Bot):
