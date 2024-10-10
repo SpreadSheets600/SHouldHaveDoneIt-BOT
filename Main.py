@@ -14,10 +14,6 @@ st.write("ENV Variables Set : ", os.getenv("TOKEN") == st.secrets["TOKEN"])
 intents = discord.Intents.all()
 bot = discord.Bot(intents=intents)
 
-if not asyncio.get_event_loop().is_running():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
 
 @bot.event
 async def on_ready():
@@ -106,12 +102,5 @@ try:
 except Exception as e:
     print(f"An Error Occurred: {e}")
 
-
-async def run_bot():
-    KeepAlive()
-    await bot.start(os.getenv("TOKEN"))
-
-
-if __name__ == "__main__":
-    if not asyncio.get_event_loop().is_running():
-        asyncio.run(run_bot())
+KeepAlive()
+bot.run(os.getenv("TOKEN"))
