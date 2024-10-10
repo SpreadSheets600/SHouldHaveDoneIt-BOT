@@ -4,43 +4,37 @@ import datetime
 import streamlit as st
 from KeepAlive import KeepAlive
 from discord.ext import commands
-
 from dotenv import load_dotenv
+import asyncio
 
 load_dotenv()
 
-st.write(
-    "ENV Variables Set : ",
-    os.environ["TOKEN"] == st.secrets["TOKEN"],
-)
+st.write("ENV Variables Set : ", os.getenv("TOKEN") == st.secrets["TOKEN"])
 
-bot = discord.Bot(intents=discord.Intents.all())
+intents = discord.Intents.all()
+bot = discord.Bot(intents=intents)
 
 
 @bot.event
 async def on_ready():
-
     print("--------------------------------")
-    print("----- + LOADED ASTRUM V3 + -----")
+    print("----- + LOADED SHOULDUDU + -----")
     print("--------------------------------")
 
     await bot.change_presence(activity=discord.Game(name="With Codes"))
 
-    start_time = datetime.datetime.now()
-    bot.start_time = start_time
+    bot.start_time = datetime.datetime.now()
 
     print("----- + LOADING COMMANDS + -----")
     print("--------------------------------")
 
-    commands = 0
-
+    command_count = 0
     for command in bot.walk_application_commands():
-        commands += 1
-
-        print(f"----- + Loaded : {command.name} ")
+        command_count += 1
+        print(f"----- + Loaded : {command.name}")
 
     print("--------------------------------")
-    print(f"---- + Loaded : {commands}  Commands + -")
+    print(f"---- + Loaded : {command_count} Commands + ----")
     print("--------------------------------")
 
     print("------- + LOADING COGS + -------")
@@ -51,10 +45,6 @@ async def on_ready():
 @bot.slash_command(
     name="ping",
     description="Check Bot's Latency & Uptime",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
 )
 async def ping(ctx: discord.ApplicationContext):
     latency = bot.latency * 1000
@@ -75,15 +65,11 @@ async def ping(ctx: discord.ApplicationContext):
 @bot.slash_command(
     name="info",
     description="Get Bot Information",
-    integration_types={
-        discord.IntegrationType.guild_install,
-        discord.IntegrationType.user_install,
-    },
 )
 async def info(ctx: discord.ApplicationContext):
     embed = discord.Embed(
         title=":information_source: Application Info",
-        description="Mutipurpose Discord Bot\nFor ShouldHaveDoneIt",
+        description="Multipurpose Discord Bot\nFor ShouldHaveDoneIt",
         color=0x2F3136,
     )
 
@@ -117,7 +103,11 @@ except Exception as e:
     print(f"An Error Occurred: {e}")
 
 
-if __name__ == "__main__":
-
+async def run_bot():
     KeepAlive()
-    bot.run(os.getenv("TOKEN"))
+    await bot.start(os.getenv("TOKEN"))
+
+
+if __name__ == "__main__":
+    if not asyncio.get_event_loop().is_running():
+        asyncio.run(run_bot())
