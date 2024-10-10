@@ -1,12 +1,18 @@
 import os
 import discord
 import datetime
+import streamlit as st
 from KeepAlive import KeepAlive
 from discord.ext import commands
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+st.write(
+    "ENV Variables Set : ",
+    os.environ["TOKEN"] == st.secrets["TOKEN"],
+)
 
 bot = discord.Bot(intents=discord.Intents.all())
 

@@ -2,11 +2,21 @@ import os
 import json
 import aiohttp
 import discord
+import streamlit as st
 from discord.ext import commands
 
 from dotenv import load_dotenv
 
 load_dotenv()
+
+st.write(
+    "ENV Variables Set : ",
+    os.environ["JDOODLE_CLIENT_ID"] == st.secrets["JDOODLE_CLIENT_ID"],
+)
+st.write(
+    "ENV Variables Set : ",
+    os.environ["JDOODLE_CLIENT_SECRET"] == st.secrets["JDOODLE_CLIENT_SECRET"],
+)
 
 
 class CodeExecution(commands.Cog):
