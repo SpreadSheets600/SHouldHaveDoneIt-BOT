@@ -1,6 +1,7 @@
 import os
 import discord
 import datetime
+from KeepAlive import KeepAlive
 from discord.ext import commands
 
 from dotenv import load_dotenv
@@ -110,4 +111,7 @@ except Exception as e:
     print(f"An Error Occurred: {e}")
 
 
-bot.run(os.getenv("TOKEN"))
+if __name__ == "__main__":
+
+    KeepAlive()
+    bot.run(os.getenv("TOKEN"))
