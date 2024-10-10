@@ -14,6 +14,10 @@ st.write("ENV Variables Set : ", os.getenv("TOKEN") == st.secrets["TOKEN"])
 intents = discord.Intents.all()
 bot = discord.Bot(intents=intents)
 
+if not asyncio.get_event_loop().is_running():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
 
 @bot.event
 async def on_ready():
